@@ -1,9 +1,12 @@
 package gui;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import db.DbException;
+import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Limitacoes;
 import gui.util.Utilidades;
@@ -22,6 +25,8 @@ public class FormularioDepartamentoController implements Initializable{
 	private Departamento entity;
 	
 	private DepartamentoServices service;
+	
+	private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 	
 	@FXML
 	private TextField txtId;
@@ -46,6 +51,10 @@ public class FormularioDepartamentoController implements Initializable{
 		this.service = service;
 	}
 	
+	public void subscribeDataChangeListener(DataChangeListener listener) {
+		dataChangeListeners.add(listener);
+	}
+	
 	@FXML
 	public void onBtSalvarAction(ActionEvent event) {
 		if(entity == null) {
@@ -57,6 +66,7 @@ public class FormularioDepartamentoController implements Initializable{
 		try {
 			entity = getDadosFormulario();
 			service.saveOrUpdate(entity);
+			notifyDataChangeListeners();
 			Utilidades.stageAtual(event).close();
 		}
 		catch (DbException e) {
@@ -64,6 +74,12 @@ public class FormularioDepartamentoController implements Initializable{
 		}
 	}
 	
+	private void notifyDataChangeListeners() {
+		for(DataChangeListener listener : dataChangeListeners) {
+			listener.onDataChanged();
+		}
+	}
+
 	private Departamento getDadosFormulario() {
 		Departamento obj = new Departamento();
 		
